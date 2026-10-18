@@ -1,0 +1,103 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<templates xml:space="preserve">
+
+    <t t-name="nl_dev_tools.RawRecordEditorDialog">
+        <Dialog title="title" size="'xl'" contentClass="'o_nl_dev_tools_raw_editor'">
+            <div t-if="props.hasUnsavedChanges" class="alert alert-warning py-2">
+                The form has unsaved changes. They will be discarded when this editor saves.
+            </div>
+            <div t-if="state.error" class="alert alert-danger py-2 mb-2" role="alert">
+                <pre class="mb-0 text-wrap" t-esc="state.error"/>
+            </div>
+            <div class="o_nl_dev_tools_toolbar d-flex align-items-center gap-3 py-2 bg-view">
+                <input type="search" class="form-control" placeholder="Search by label or technical name"
+                       t-model="state.search"/>
+                <span class="text-muted text-nowrap" t-esc="data.display_name"/>
+            </div>
+            <table class="table table-sm align-middle mb-0">
+                <thead>
+                    <tr>
+                        <th class="w-25">Field</th>
+                        <th>Type</th>
+                        <th>Flags</th>
+                        <th class="w-50">Value</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <t t-foreach="data.fields" t-as="field" t-key="field.name">
+                        <RawFieldRow field="field"
+                                     value="data.values[field.name]"
+                                     resModel="props.resModel"
+                                     sqlMode="state.sqlMode"
+                                     dirty="state.dirty[field.name] === true"
+                                     hidden="isHidden(field)"
+                                     revision="state.revisions[field.name] || 0"
+                                     onLoaded="onRowLoaded"
+                                     onChanged="onRowChanged"
+                                     onReset="onRowReset"/>
+                    </t>
+                </tbody>
+            </table>
+            <t t-set-slot="footer">
+                <button class="btn btn-primary" t-att-disabled="state.saving" t-on-click="onSave">
+                    Save
+                    <span t-if="dirtyCount" class="badge text-bg-light ms-1" t-esc="dirtyCount"/>
+                </button>
+                <button class="btn btn-secondary" t-on-click="() => props.close()">Cancel</button>
+                <div class="form-check ms-auto"
+                     title="Runs a direct SQL UPDATE: skips write() overrides, constraints, recomputes and tracking. Many2many fields cannot be edited in this mode.">
+                    <input class="form-check-input" type="checkbox" id="nl_dev_tools_sql_mode"
+                           t-att-checked="state.sqlMode" t-on-change="onToggleSqlMode"/>
+                    <label class="form-check-label" for="nl_dev_tools_sql_mode">Raw SQL</label>
+                </div>
+            </t>
+        </Dialog>
+    </t>
+
+    <t t-name="nl_dev_tools.RawFieldRow">
+        <tr t-att-class="{'d-none': props.hidden, 'table-warning': props.dirty}">
+            <td>
+                <div t-esc="props.field.string"/>
+                <code class="small" t-esc="props.field.name"/>
+            </td>
+            <td>
+                <span class="text-muted" t-esc="props.field.type"/>
+                <div t-if="props.field.relation" class="small text-muted" t-esc="props.field.relation"/>
+            </td>
+            <td>
+                <t t-foreach="badges" t-as="badge" t-key="badge.label">
+                    <span t-attf-class="badge rounded-pill me-1 {{ badge.cls }}" t-esc="badge.label"/>
+                </t>
+            </td>
+            <td>
+                <div t-if="props.field.editable" class="d-flex align-items-center gap-2">
+                    <div class="flex-grow-1">
+                        <RawFieldEditor t-key="props.revision"
+                                        field="props.field"
+                                        value="props.value"
+                                        resModel="props.resModel"
+                                        readonly="readonly"
+                                        onLoaded="props.onLoaded"
+                                        onChanged="props.onChanged"/>
+                    </div>
+                    <a t-if="props.dirty" href="#" class="small text-nowrap"
+                       t-on-click.prevent="() => props.onReset(props.field.name)">reset</a>
+                </div>
+                <span t-else="" class="text-muted text-break" t-esc="displayValue"/>
+            </td>
+        </tr>
+    </t>
+
+    <t t-name="nl_dev_tools.RawFieldEditor">
+        <Record resModel="props.resModel"
+                fields="fields"
+                activeFields="activeFields"
+                values="values"
+                mode="'edit'"
+                hooks="hooks"
+                t-slot-scope="data">
+            <Field name="props.field.name" record="data.record" type="widget" readonly="props.readonly"/>
+        </Record>
+    </t>
+
+</templates>

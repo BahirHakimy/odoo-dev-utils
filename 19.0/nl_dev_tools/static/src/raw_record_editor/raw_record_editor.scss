@@ -1,0 +1,23 @@
+.o_nl_dev_tools_raw_editor {
+    .modal-body {
+        max-height: 75vh;
+        overflow-y: auto;
+        padding-top: 0;
+    }
+
+    .o_nl_dev_tools_toolbar {
+        position: sticky;
+        top: 0;
+        z-index: 2;
+    }
+
+    // standalone fields are rendered outside a form view
+    .o_field_widget:not(.o_field_boolean) {
+        width: 100%;
+
+        input:not([type="checkbox"]),
+        textarea {
+            width: 100%;
+        }
+    }
+}
