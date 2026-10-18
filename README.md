@@ -21,11 +21,18 @@ configuration paths with those used by your project.
    ```yaml
    - ${DEV_TOOLS_PATH_19}:/mnt/dev-tools-19
    ```
-3. Add the mount to `addons_path` and enable the tools in `odoo.conf`:
+3. Add the mount to `addons_path` in `odoo.conf`:
    ```ini
    addons_path = ...,/mnt/dev-tools-19
-   dev_tools_enabled = True
    ```
+   and enable the tools by adding `dev_tools` to Odoo's `--dev` option, e.g. in
+   the Compose `command:`
+   ```yaml
+   command: ['odoo', '--config=/etc/odoo/odoo.conf', '--dev=xml,qweb,dev_tools']
+   ```
+   or through the environment: `ODOO_DEV=xml,qweb,dev_tools`.
+
+   `--dev=all` does not enable the tools; `dev_tools` must be named explicitly.
 4. Recreate the service (a restart does not pick up new volumes), install the
    addon, and restart the container:
    ```bash
@@ -34,11 +41,9 @@ configuration paths with those used by your project.
    docker restart your-odoo-container
    ```
 
-Odoo logs `unknown option 'dev_tools_enabled'` at startup; that is expected.
-
 ## Guardrails
 
-- Does nothing unless `dev_tools_enabled = True` is in `odoo.conf`, even when installed.
+- Does nothing unless Odoo runs with `--dev=...,dev_tools` (or `ODOO_DEV`), even when installed.
 - Settings administrators (`base.group_system`) only, checked server-side.
 - Lives in the debug menu, so developer mode is required.
 - Every save is logged as a server warning and, on models with a chatter, posted as a note listing old → new values.

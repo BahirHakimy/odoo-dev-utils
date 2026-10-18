@@ -10,7 +10,7 @@
         field of a record (readonly, invisible, computed and state fields
         included) through the ORM or, as a fallback, a raw SQL UPDATE.
 
-        Disabled unless `dev_tools_enabled = True` is set in odoo.conf, and
+        Disabled unless Odoo runs with `--dev=...,dev_tools` (or ODOO_DEV), and
         restricted to Settings administrators. Never enable it in production.
     """,
 

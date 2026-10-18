@@ -7,7 +7,7 @@ from markupsafe import Markup
 from odoo import _, api, models
 from odoo.exceptions import AccessError, UserError
 from odoo.fields import Command
-from odoo.tools import SQL, config, str2bool
+from odoo.tools import SQL, config
 
 _logger = logging.getLogger(__name__)
 
@@ -29,7 +29,8 @@ class DevToolsRawEditor(models.AbstractModel):
 
     @api.model
     def _is_enabled(self):
-        return str2bool(str(config.get('dev_tools_enabled') or False), default=False)
+        # --dev=...,dev_tools (or ODOO_DEV); `--dev=all` deliberately does not count
+        return 'dev_tools' in (config.get('dev_mode') or [])
 
     @api.model
     def _is_allowed(self):
@@ -38,7 +39,7 @@ class DevToolsRawEditor(models.AbstractModel):
     @api.model
     def _check_access(self):
         if not self._is_enabled():
-            raise AccessError(_("Developer tools are disabled. Set dev_tools_enabled = True in odoo.conf."))
+            raise AccessError(_("Developer tools are disabled. Start Odoo with --dev=dev_tools."))
         if not self.env.user._is_system():
             raise AccessError(_("Only Settings administrators can use the developer tools."))
 
