@@ -1,6 +1,6 @@
 # odoo-dev-tools
 
-Developer tools for NETLINKS Odoo projects. **Development databases only.**
+Reusable developer tools for Odoo projects. **Development databases only.**
 
 One folder per Odoo version; each holds installable addons.
 
@@ -10,26 +10,28 @@ One folder per Odoo version; each holds installable addons.
 
 ## Mounting into a container
 
-Using `vdo_odoo_19` as the example (the compose file lives in `../docker-compose.yml`):
+The example below uses Odoo 19. Replace the service, container, database, and
+configuration paths with those used by your project.
 
-1. `../.env`
+1. Add the versioned tools directory to your project's environment file:
    ```
-   DEV_TOOLS_PATH_19=/Users/<you>/Desktop/odoo-projects/odoo-dev-tools/19.0
+   DEV_TOOLS_PATH_19=/absolute/path/to/odoo-dev-tools/19.0
    ```
-2. `../docker-compose.yml`, under the service's `volumes:`
+2. Mount it in the Odoo service in your Compose file:
    ```yaml
    - ${DEV_TOOLS_PATH_19}:/mnt/dev-tools-19
    ```
-3. `../docker/<project>.conf`
+3. Add the mount to `addons_path` and enable the tools in `odoo.conf`:
    ```ini
    addons_path = ...,/mnt/dev-tools-19
    dev_tools_enabled = True
    ```
-4. Recreate the container (a restart does not pick up new volumes) and install:
+4. Recreate the service (a restart does not pick up new volumes), install the
+   addon, and restart the container:
    ```bash
-   docker compose up -d vdo_odoo_19
-   docker exec -it vdo-19-odoo odoo -c /etc/odoo/odoo.conf -d vdo-19 -i nl_dev_tools --stop-after-init
-   docker restart vdo-19-odoo
+   docker compose up -d --force-recreate your-odoo-service
+   docker exec -it your-odoo-container odoo -c /etc/odoo/odoo.conf -d your-database -i nl_dev_tools --stop-after-init
+   docker restart your-odoo-container
    ```
 
 Odoo logs `unknown option 'dev_tools_enabled'` at startup; that is expected.
